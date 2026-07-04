@@ -1,0 +1,39 @@
+name: Sync experiment design to master
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - experiment_design.md
+
+permissions:
+  contents: write
+
+jobs:
+  sync-md:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: Copy experiment design from dev
+        run: |
+          git fetch origin dev master
+          git checkout origin/dev -- experiment_design.md
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- experiment_design.md; then
+            echo "experiment_design.md is already in sync."
+            exit 0
+          fi
+          git add experiment_design.md
+          git commit -m "Sync experiment design from dev"
+          git push origin master
+
