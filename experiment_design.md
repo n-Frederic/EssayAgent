@@ -9,9 +9,10 @@
 本轮实验以 NatureBench PDF 中涉及 MIRO 的源论文作为主目标：
 
 - 论文：Pineda et al., "Enhanced spatial clustering of single-molecule localizations with graph neural networks"
+- 原论文 PDF：https://arxiv.org/pdf/2412.00173
 - 来源：Nature Communications, 16(1):9693, 2025
-- 方法：MIRO
-- 任务：对单分子定位显微镜（SMLM）产生的 localization point cloud 进行空间聚类增强；MIRO 使用 graph neural networks 对点云进行变换，使 DBSCAN 等传统聚类方法在复杂形状、多尺度、高噪声或高密度场景下更接近 ground truth。
+- 方法：MIRO (Multifunctional Integration through Relational Optimization)
+- 任务：对单分子定位显微镜（SMLM）产生的 localization point cloud 进行空间聚类增强；MIRO 使用 recurrent graph neural networks 对点云进行变换，使 DBSCAN 等传统聚类方法在复杂形状、多尺度、高噪声或高密度场景下更接近 ground truth。
 
 ## 论文选择要求与 comment
 
@@ -24,7 +25,7 @@
 Comment:
 
 - 级别：满足。NatureBench 的参考文献中将 MIRO 源论文列为 Nature Communications 2025 论文，符合 CNS 子刊级别要求。
-- 易复现：较适合。任务输入是 SMLM 点云，核心流程可拆为数据构造、图构建、GNN 点云变换、DBSCAN 聚类、指标评估；相较大规模 foundation model，复现闭环更轻。
+- 易复现：较适合。任务输入是 SMLM 点云，核心流程可拆为数据构造、图构建、recurrent GNN 点云变换、DBSCAN 聚类、指标评估；相较大规模 foundation model，复现闭环更轻。
 - 易优化：较适合。可优化点集中在图构建、GNN 结构、训练目标、数据增强、聚类后处理和超参数搜索，且都能通过聚类指标形成自动反馈。
 
 ## Agent 复现目标
@@ -33,7 +34,7 @@ Agent 需要围绕 MIRO 完成以下复现闭环：
 
 1. 读取论文、代码和数据说明，提取最小可运行实验配置。
 2. 构建 baseline：直接对 SMLM localization point cloud 运行 DBSCAN，并记录与 ground truth 的差距。
-3. 复现 MIRO：实现或调用 graph neural network，将原始点云变换为更易聚类的表示，再接 DBSCAN 得到聚类结果。
+3. 复现 MIRO：实现或调用 recurrent graph neural network，将原始点云变换为更易聚类的表示，再接 DBSCAN 得到聚类结果。
 4. 建立统一评估脚本：至少记录 ARI、NMI/AMI、precision、recall、F1，以及簇数量误差等可自动比较指标。
 5. 固化实验记录：每次运行保存配置、随机种子、指标、图像可视化和失败原因，方便 agent 后续根据反馈优化。
 
@@ -42,7 +43,7 @@ Agent 需要围绕 MIRO 完成以下复现闭环：
 优化不应只停留在调参，而应围绕可验证反馈形成小步实验：
 
 1. 图构建优化：比较 kNN、radius graph、混合图，以及不同邻居数/半径对聚类质量的影响。
-2. 模型结构优化：调整 GNN 层数、hidden size、message passing 次数、残差连接和归一化方式。
+2. 模型结构优化：调整 recurrent GNN 层数、hidden size、message passing 次数、残差连接和归一化方式。
 3. 训练目标优化：比较坐标变换损失、边关系监督、对比学习目标，以及与最终聚类指标更一致的 surrogate loss。
 4. 数据增强优化：系统测试定位噪声、点密度、cluster shape、多尺度混合场景下的鲁棒性。
 5. 聚类后处理优化：在 MIRO 输出后自动搜索 DBSCAN 的 eps/min_samples，或比较 HDBSCAN 等替代聚类器。
